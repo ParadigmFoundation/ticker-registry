@@ -1,0 +1,12 @@
+{
+  "files": [
+    "artifacts/TickerRegistry.json",
+    "artifacts/TickerRegistry.json"
+  ],
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "resolveJsonModule": true,
+    "moduleResolution": "node"
+  }
+}

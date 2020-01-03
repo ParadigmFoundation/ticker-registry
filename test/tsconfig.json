@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "..",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "types": ["mocha", "chai"]
+  }
+}
