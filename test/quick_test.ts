@@ -26,7 +26,14 @@ describe("TickerRegistry", () => {
         tkb = await TestTokenContract.deployFrom0xArtifactAsync(TestTokenArtifact as ContractArtifact, provider, { from }, { TestToken: TestTokenArtifact as ContractArtifact }, "TokenB", "TKB", 18);
         tkc = await TestTokenContract.deployFrom0xArtifactAsync(TestTokenArtifact as ContractArtifact, provider, { from }, { TestToken: TestTokenArtifact as ContractArtifact }, "TokenC", "TKC", 18);
 
-        trc = await TickerRegistryContract.deployFrom0xArtifactAsync(artifacts.TickerRegistry, provider, { from }, { TickerRegistry: artifacts.TickerRegistry }, [{ tokenAddress: tkc.address, ticker: "ex" }])
+        trc = await TickerRegistryContract.deployFrom0xArtifactAsync(artifacts.TickerRegistry, provider, { from }, { TickerRegistry: artifacts.TickerRegistry }, accounts.slice(1),[{ tokenAddress: tkc.address, ticker: "ex" }])
+    });
+
+    it('should allow whitelisted address to be removed', async () => {
+        await trc.isWhitelistAdmin(accounts[9]).callAsync().should.eventually.be.equal(true)
+        await trc.removeWhitelistAdmin(accounts[9]).awaitTransactionSuccessAsync()
+        await trc.isWhitelistAdmin(accounts[9]).callAsync().should.eventually.be.equal(false)
+
     });
 
     it('should have initial ticker registered', async () => {
@@ -55,7 +62,9 @@ describe("TickerRegistry", () => {
     });
 
     it('should prevent anyone from using the override function', async () => {
-        await trc.overrideTicker("BKT", tkb.address).awaitTransactionSuccessAsync({ from: accounts[2] }).should.eventually.be.rejected;
+        await trc.overrideTicker("BKT", tkb.address).awaitTransactionSuccessAsync({ from: accounts[9] }).should.eventually.be.rejected;
+        await trc.addWhitelistAdmin(accounts[9]).awaitTransactionSuccessAsync();
+        await trc.overrideTicker("BKT", tkb.address).awaitTransactionSuccessAsync({ from: accounts[9] }).should.eventually.be.fulfilled;
     });
 
     it('should allow override of a used ticker', async () => {
