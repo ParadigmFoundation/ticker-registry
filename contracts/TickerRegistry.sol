@@ -68,15 +68,15 @@ contract TickerRegistry is Ownable {
         tokenTickers[tokenAddress] = ticker;
     }
 
-    function _tokenTickerEmpty(address a) internal returns (bool) {
+    function _tokenTickerEmpty(address a) internal view returns (bool) {
         return _stringsMatch(tokenTickers[a], "");
     }
 
-    function _tickerAddressEmpty(string memory ticker) internal returns (bool) {
+    function _tickerAddressEmpty(string memory ticker) internal view returns (bool) {
         return tickerAddresses[ticker] == address(0x0);
     }
 
-    function _stringsMatch(string memory s1, string memory s2) internal returns (bool) {
+    function _stringsMatch(string memory s1, string memory s2) pure internal returns (bool) {
         return keccak256(abi.encodePacked(s1)) == keccak256(abi.encodePacked(s2));
     }
 }
