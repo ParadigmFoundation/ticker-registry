@@ -3,8 +3,9 @@ pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/access/roles/WhitelistAdminRole.sol";
 
-contract TickerRegistry is Ownable {
+contract TickerRegistry is WhitelistAdminRole, Ownable {
 
     mapping(address => string) tokenTickers;
     mapping(string => address) tickerAddresses;
@@ -15,7 +16,11 @@ contract TickerRegistry is Ownable {
         address tokenAddress;
     }
 
-    constructor(TickerOverride[] memory overrides) public {
+    constructor(address[] memory whitelist, TickerOverride[] memory overrides) public {
+        for(uint i = 0; i < whitelist.length; i++) {
+            addWhitelistAdmin(whitelist[i]);
+        }
+
         for(uint i = 0; i < overrides.length; i++) {
             overrideTicker(overrides[i].ticker, overrides[i].tokenAddress);
         }
@@ -33,7 +38,7 @@ contract TickerRegistry is Ownable {
         return tickerAddresses[t];
     }
 
-    function overrideTicker(string memory ticker, address tokenAddress) onlyOwner public {
+    function overrideTicker(string memory ticker, address tokenAddress) onlyWhitelistAdmin public {
         _update(ticker, tokenAddress);
     }
 
@@ -42,6 +47,10 @@ contract TickerRegistry is Ownable {
         string memory ticker = ERC20Detailed(tokenAddress).symbol();
         require(_tickerAddressEmpty(ticker), "Ticker in use.");
         _update(ticker, tokenAddress);
+    }
+
+    function removeWhitelistAdmin(address account) public onlyOwner {
+        _removeWhitelistAdmin(account);
     }
 
     function _update(string memory ticker, address tokenAddress) internal {
@@ -68,15 +77,15 @@ contract TickerRegistry is Ownable {
         tokenTickers[tokenAddress] = ticker;
     }
 
-    function _tokenTickerEmpty(address a) internal returns (bool) {
+    function _tokenTickerEmpty(address a) internal view returns (bool) {
         return _stringsMatch(tokenTickers[a], "");
     }
 
-    function _tickerAddressEmpty(string memory ticker) internal returns (bool) {
+    function _tickerAddressEmpty(string memory ticker) internal view returns (bool) {
         return tickerAddresses[ticker] == address(0x0);
     }
 
-    function _stringsMatch(string memory s1, string memory s2) internal returns (bool) {
+    function _stringsMatch(string memory s1, string memory s2) pure internal returns (bool) {
         return keccak256(abi.encodePacked(s1)) == keccak256(abi.encodePacked(s2));
     }
 }
